@@ -1,7 +1,7 @@
-/* General Body Styling */
+/* General Styling */
 body {
     font-family: 'Arial', sans-serif;
-    background-color: #f5f5f5;
+    background: #f0f0f0;
     margin: 0;
     padding: 0;
     display: flex;
@@ -10,66 +10,60 @@ body {
     height: 100vh;
 }
 
+/* Centered Container */
 .container {
-    background-color: #fff;
+    background: #fff;
     padding: 20px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    width: 400px;
+    max-width: 400px;
     text-align: center;
     border-radius: 10px;
 }
 
+/* Header */
 header h1 {
-    font-size: 2em;
+    font-size: 1.8em;
     color: #333;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
-.content label {
-    font-size: 1.1em;
-    color: #333;
-}
-
+/* Input Field */
 input {
     padding: 10px;
     font-size: 1em;
-    width: 70%;
-    margin-top: 10px;
+    width: 90%;
+    margin: 10px 0;
     border: 1px solid #ccc;
     border-radius: 5px;
+    text-align: center;
+}
+
+/* Buttons */
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 
 button {
-    background-color: #4CAF50;
+    background: #007bff;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 10px 15px;
     font-size: 1em;
-    margin-top: 20px;
     cursor: pointer;
     border-radius: 5px;
+    transition: background 0.3s;
 }
 
 button:hover {
-    background-color: #45a049;
+    background: #0056b3;
 }
 
-button:active {
-    background-color: #388e3c;
-}
-
+/* Result Section */
 .result {
     margin-top: 20px;
     font-size: 1.2em;
     color: #333;
-}
-
-.result h2 {
-    font-size: 1.5em;
-    color: #4CAF50;
-}
-
-.result p {
-    font-size: 1.1em;
-    color: #333;
+    min-height: 30px;
 }
