@@ -7,12 +7,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="game-container">
+    <div class="container">
         <h1>Stimulation Clicker</h1>
-        <p>Clicks: <span id="score">0</span></p>
-        <button id="clickButton">Click Me!</button>
-        <button id="upgradeButton">Upgrade (Cost: <span id="upgradeCost">10</span>)</button>
+        <p id="clickCount">Clicks: 0</p>
+        <button id="clickBtn">Click Me!</button>
+        <button id="upgradeBtn" style="display: none;">Upgrade (Cost: 10)</button>
     </div>
-    <script src="script.js"></script>
+    <script>
+        let clicks = 0;
+        const clickBtn = document.getElementById("clickBtn");
+        const upgradeBtn = document.getElementById("upgradeBtn");
+        const clickCount = document.getElementById("clickCount");
+
+        clickBtn.addEventListener("click", () => {
+            clicks++;
+            clickCount.textContent = `Clicks: ${clicks}`;
+            if (clicks >= 10) {
+                upgradeBtn.style.display = "inline";
+            }
+        });
+    </script>
 </body>
 </html>
