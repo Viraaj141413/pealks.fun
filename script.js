@@ -1,23 +1,28 @@
-let score = 0;
-let clickPower = 1;
-let upgradeCost = 10;
+// script.js
+let stimulation = 0;
+const clickBtn = document.getElementById("clickBtn");
+const clickCount = document.getElementById("clickCount");
+const upgrades = document.getElementById("upgrades");
 
-const scoreDisplay = document.getElementById("score");
-const clickButton = document.getElementById("clickButton");
-const upgradeButton = document.getElementById("upgradeButton");
-const upgradeCostDisplay = document.getElementById("upgradeCost");
+const upgradeLevels = [20, 50, 100, 500, 1000, 1500, 3000, 5000];
+const backgrounds = ["#f0f0f0", "#e0e0ff", "#d0ffd0", "#ffe0e0", "#ffffd0", "#d0d0ff", "#ffd0ff", "#d0ffff"];
 
-clickButton.addEventListener("click", () => {
-    score += clickPower;
-    scoreDisplay.textContent = score;
+clickBtn.addEventListener("click", () => {
+    stimulation++;
+    clickCount.textContent = `Stimulation: ${stimulation}`;
+    checkUpgrades();
 });
 
-upgradeButton.addEventListener("click", () => {
-    if (score >= upgradeCost) {
-        score -= upgradeCost;
-        clickPower++;
-        upgradeCost *= 2;
-        scoreDisplay.textContent = score;
-        upgradeCostDisplay.textContent = upgradeCost;
-    }
-});
+function checkUpgrades() {
+    upgradeLevels.forEach((level, index) => {
+        if (stimulation === level) {
+            let upgradeBtn = document.createElement("button");
+            upgradeBtn.textContent = `Upgrade (Cost: ${level})`;
+            upgradeBtn.addEventListener("click", () => {
+                document.body.style.background = backgrounds[index];
+                upgradeBtn.remove();
+            });
+            upgrades.appendChild(upgradeBtn);
+        }
+    });
+}
