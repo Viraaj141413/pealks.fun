@@ -3,31 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stimulation Clicker</title>
+    <title>Perfect Circle Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Stimulation Clicker</h1>
-        <button id="click-button">Click me</button>
-        <p id="stimulation-count">0 stimulation</p>
-
-        <div id="items-container">
-            <button class="item hidden" id="dvd" data-cost="100">DVD</button>
-            <button class="item hidden" id="double-click" data-cost="120">Double Click</button>
-            <button class="item hidden" id="auto-click" data-cost="500">Auto Click</button>
-            <button class="item hidden" id="bouncing-dvd" data-cost="1000">Bouncing DVD</button>
-            <button class="item hidden" id="raindrop" data-cost="2000">Raindrop</button>
-        </div>
-
-        <div id="level-bar-container">
-            <p id="level-text">Level 1</p>
-            <progress id="level-bar" value="0" max="500"></progress>
-        </div>
-
-        <button id="collect-bonus" class="hidden">Collect +1,000 stimulation</button>
-    </div>
-    
+    <div class="score" id="score">Draw a circle!</div>
+    <canvas id="circleCanvas"></canvas>
     <script src="script.js"></script>
 </body>
 </html>
