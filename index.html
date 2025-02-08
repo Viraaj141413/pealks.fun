@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discover Inventions by Year</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Inventions by Year</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -13,15 +13,14 @@
         </header>
         <div class="content">
             <label for="yearInput">Enter a year between 1940 and 2025:</label>
-            <input type="number" id="yearInput" min="1940" max="2025" placeholder="e.g., 1983">
-            <div class="buttons">
-                <button id="generateBtn">Show Invention</button>
-                <button id="resetBtn">Reset</button>
-            </div>
+            <input type="number" id="yearInput" min="1940" max="2025">
+            <button id="generateBtn">Show Invention</button>
+            <button id="resetBtn">Reset</button>
         </div>
         <div class="result" id="result"></div>
     </div>
 
+    <!-- ✅ Move script to the bottom -->
     <script src="script.js"></script>
 </body>
 </html>
