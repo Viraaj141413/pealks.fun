@@ -1,58 +1,101 @@
-let stimulation = 0;
-let level = 1;
-let nextLevel = 500;
-let doubleClickActive = false;
-let autoClicker = null;
+const canvas = document.getElementById("circleCanvas");
+const ctx = canvas.getContext("2d");
+const scoreDiv = document.getElementById("score");
+let drawing = false;
+let points = [];
+let highScore = 0;
 
-document.getElementById("click-button").addEventListener("click", () => {
-    stimulation += doubleClickActive ? 2 : 1;
-    updateUI();
-});
-
-document.getElementById("collect-bonus").addEventListener("click", () => {
-    stimulation += 1000;
-    document.getElementById("collect-bonus").classList.add("hidden");
-    updateUI();
-});
-
-setInterval(() => {
-    document.getElementById("collect-bonus").classList.remove("hidden");
-}, 20000);
-
-document.querySelectorAll(".item").forEach(button => {
-    button.addEventListener("click", () => {
-        const cost = parseInt(button.dataset.cost);
-        if (stimulation >= cost) {
-            stimulation -= cost;
-            if (button.id === "double-click") doubleClickActive = true;
-            if (button.id === "auto-click" && !autoClicker) {
-                autoClicker = setInterval(() => {
-                    stimulation++;
-                    updateUI();
-                }, 1000);
-            }
-            if (button.id === "bouncing-dvd" || button.id === "raindrop") {
-                button.disabled = true;
-            }
-            updateUI();
-        }
-    });
-});
-
-function updateUI() {
-    document.getElementById("stimulation-count").textContent = `${stimulation} stimulation`;
-
-    document.querySelectorAll(".item").forEach(button => {
-        if (stimulation >= parseInt(button.dataset.cost)) {
-            button.classList.remove("hidden");
-        }
-    });
-
-    if (stimulation >= nextLevel) {
-        level++;
-        nextLevel += 500;
-        document.getElementById("level-text").textContent = `Level ${level}`;
-        document.getElementById("level-bar").max = nextLevel;
-    }
-    document.getElementById("level-bar").value = stimulation;
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
 }
+
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+const minDistance = 50; // Minimum distance from the center
+
+function drawCenterDot() {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+canvas.addEventListener("mousedown", (e) => {
+    const distFromCenter = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
+    if (distFromCenter < minDistance) {
+        scoreDiv.innerText = "Too close to the dot!";
+        return;
+    }
+    drawing = true;
+    points = [];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawCenterDot();
+});
+
+canvas.addEventListener("mousemove", (e) => {
+    if (!drawing) return;
+    points.push({ x: e.clientX, y: e.clientY });
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    if (points.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
+        ctx.lineTo(e.clientX, e.clientY);
+        ctx.stroke();
+    }
+});
+
+canvas.addEventListener("mouseup", () => {
+    drawing = false;
+    evaluateCircle();
+});
+
+function evaluateCircle() {
+    if (points.length < 10) return;
+    let minX = Math.min(...points.map(p => p.x));
+    let maxX = Math.max(...points.map(p => p.x));
+    let minY = Math.min(...points.map(p => p.y));
+    let maxY = Math.max(...points.map(p => p.y));
+    let width = maxX - minX;
+    let height = maxY - minY;
+    let avgRadius = (width + height) / 4;
+    
+    let deviations = points.map(p => {
+        let dist = Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
+        return Math.abs(dist - avgRadius);
+    });
+    let avgDeviation = deviations.reduce((sum, d) => sum + d, 0) / deviations.length;
+    
+    let stability = Math.max(0, 100 - avgDeviation * 1.5); // Made less strict
+    let score = Math.round(stability + 5); // Increased score to be more forgiving
+    
+    ctx.strokeStyle = "yellow";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, avgRadius, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    if (score > 90) {
+        scoreDiv.style.backgroundColor = "green";
+        scoreDiv.style.color = "white";
+    } else if (score > 70) {
+        scoreDiv.style.backgroundColor = "yellow";
+        scoreDiv.style.color = "black";
+    } else {
+        scoreDiv.style.backgroundColor = "red";
+        scoreDiv.style.color = "white";
+    }
+    
+    if (score > highScore) {
+        highScore = score;
+        scoreDiv.innerText = `Score: ${score}% - NEW HIGH SCORE!`;
+    } else {
+        scoreDiv.innerText = `Score: ${score}%`;
+    }
+}
+
+drawCenterDot();
