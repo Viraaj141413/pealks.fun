@@ -3,23 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventions by Year</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Stimulation Clicker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .button {
+            font-size: 24px;
+            padding: 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .button:active {
+            transform: scale(1.1);
+        }
+        .counter {
+            font-size: 32px;
+            margin-top: 20px;
+        }
+        .effect {
+            position: absolute;
+            font-size: 20px;
+            color: red;
+            animation: floatUp 1s ease-out;
+        }
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Discover Inventions by Year</h1>
-        </header>
-        <div class="content">
-            <label for="yearInput">Enter a year between 1900 and 2025:</label>
-            <input type="number" id="yearInput" min="1900" max="2025">
-            <button id="generateBtn">Show Invention</button>
-            <button id="resetBtn">Reset</button>
-        </div>
-        <div class="result" id="result"></div>
+        <button class="button" onclick="clickStimulate(event)">Click Me!</button>
+        <div class="counter" id="counter">0 Stimulations</div>
     </div>
+    
+    <script>
+        let count = 0;
 
-    <script src="script.js"></script>
+        function clickStimulate(event) {
+            count++;
+            document.getElementById('counter').innerText = count + " Stimulations";
+
+            const effect = document.createElement("div");
+            effect.className = "effect";
+            effect.innerText = "+1";
+            document.body.appendChild(effect);
+
+            const x = event.clientX;
+            const y = event.clientY;
+            effect.style.left = x + "px";
+            effect.style.top = y + "px";
+
+            setTimeout(() => effect.remove(), 1000);
+        }
+    </script>
 </body>
 </html>
