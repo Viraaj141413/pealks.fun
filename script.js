@@ -70,8 +70,8 @@ function evaluateCircle() {
     });
     let avgDeviation = deviations.reduce((sum, d) => sum + d, 0) / deviations.length;
     
-    let stability = Math.max(0, 100 - avgDeviation * 1.5); // Made less strict
-    let score = Math.round(stability + 5); // Increased score to be more forgiving
+    let stability = Math.max(0, 100 - avgDeviation * 1.5);
+    let score = Math.round(stability + 5);
     
     ctx.strokeStyle = "yellow";
     ctx.lineWidth = 2;
