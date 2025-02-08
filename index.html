@@ -9,23 +9,15 @@
 <body>
     <div class="container">
         <h1>Stimulation Clicker</h1>
-        <p id="clickCount">Clicks: 0</p>
-        <button id="clickBtn">Click Me!</button>
-        <button id="upgradeBtn" style="display: none;">Upgrade (Cost: 10)</button>
+        <button id="click-button">Click me</button>
+        <p id="stimulation-count">0 stimulation</p>
+        <div id="items-container"></div>
+        <div id="level-bar-container">
+            <p id="level-text">Level 1</p>
+            <progress id="level-bar" value="0" max="500"></progress>
+        </div>
+        <button id="collect-bonus" class="hidden">Collect +1,000 stimulation</button>
     </div>
-    <script>
-        let clicks = 0;
-        const clickBtn = document.getElementById("clickBtn");
-        const upgradeBtn = document.getElementById("upgradeBtn");
-        const clickCount = document.getElementById("clickCount");
-
-        clickBtn.addEventListener("click", () => {
-            clicks++;
-            clickCount.textContent = `Clicks: ${clicks}`;
-            if (clicks >= 10) {
-                upgradeBtn.style.display = "inline";
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
