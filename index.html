@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+# Create an index.html file with the provided game code
+file_path = "/mnt/data/index.html"
+
+html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -140,3 +143,9 @@
     </script>
 </body>
 </html>
+"""
+
+with open(file_path, "w") as file:
+    file.write(html_content)
+
+file_path
