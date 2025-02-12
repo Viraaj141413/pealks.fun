@@ -53,7 +53,7 @@
         
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const minDistance = 0; // Allow drawing very close to the dot
+        const minDistance = 30; // Set a small minimum distance from the center
         
         function drawCenterDot() {
             ctx.fillStyle = "white";
@@ -62,7 +62,16 @@
             ctx.fill();
         }
 
+        function isTooClose(x, y) {
+            const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+            return distFromCenter < minDistance;
+        }
+        
         canvas.addEventListener("mousedown", (e) => {
+            if (isTooClose(e.clientX, e.clientY)) {
+                scoreDiv.innerText = "Too close to the dot!";
+                return;
+            }
             drawing = true;
             points = [];
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -71,6 +80,11 @@
 
         canvas.addEventListener("mousemove", (e) => {
             if (!drawing) return;
+
+            if (isTooClose(e.clientX, e.clientY)) {
+                // Prevent drawing if too close to the center
+                return;
+            }
 
             points.push({ x: e.clientX, y: e.clientY });
             ctx.strokeStyle = "white";
