@@ -1,7 +1,4 @@
-# Create an index.html file with the provided game code
-file_path = "/mnt/data/index.html"
-
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,7 +8,7 @@ html_content = """<!DOCTYPE html>
         body {
             margin: 0;
             overflow: hidden;
-            background-color: black;
+            background: linear-gradient(to bottom, #2c3e50, #34495e); /* Gradient background */
             color: white;
         }
         canvas {
@@ -56,7 +53,7 @@ html_content = """<!DOCTYPE html>
         
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const minDistance = 50; // Minimum distance from the center
+        const minDistance = 100; // Increased minimum distance from the center
         
         function drawCenterDot() {
             ctx.fillStyle = "white";
@@ -64,10 +61,14 @@ html_content = """<!DOCTYPE html>
             ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
             ctx.fill();
         }
+
+        function isTooClose(x, y) {
+            const distFromCenter = Math.sqrt((x - centerX) ** 2 + (y - centerY) ** 2);
+            return distFromCenter < minDistance;
+        }
         
         canvas.addEventListener("mousedown", (e) => {
-            const distFromCenter = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
-            if (distFromCenter < minDistance) {
+            if (isTooClose(e.clientX, e.clientY)) {
                 scoreDiv.innerText = "Too close to the dot!";
                 return;
             }
@@ -79,6 +80,12 @@ html_content = """<!DOCTYPE html>
 
         canvas.addEventListener("mousemove", (e) => {
             if (!drawing) return;
+
+            if (isTooClose(e.clientX, e.clientY)) {
+                // Prevent drawing if too close to the center
+                return;
+            }
+
             points.push({ x: e.clientX, y: e.clientY });
             ctx.strokeStyle = "white";
             ctx.lineWidth = 2;
@@ -143,9 +150,3 @@ html_content = """<!DOCTYPE html>
     </script>
 </body>
 </html>
-"""
-
-with open(file_path, "w") as file:
-    file.write(html_content)
-
-file_path
