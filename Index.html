@@ -20,165 +20,176 @@
             width: 100vw;
             height: 100vh;
         }
-        .score {
+        .live-score {
             position: absolute;
-            top: 20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            font-size: 24px;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
             font-weight: bold;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: rgba(0, 0, 0, 0.5);
-            text-align: center;
+            color: rgba(255, 255, 0, 0.7);
+            text-shadow: 0 0 5px rgba(255, 255, 0, 0.7);
         }
-        .instructions {
+        .final-score {
             position: absolute;
-            bottom: 20px;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.7);
-            text-align: center;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            display: none;
+        }
+        .too-slow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.8);
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="score" id="score">Draw a circle!</div>
-    <div class="instructions" id="instructions">Click and drag to draw a circle around the dot.</div>
+    <div class="live-score" id="liveScore"></div>
+    <div class="final-score" id="finalScore"></div>
+    <div class="too-slow" id="tooSlow">Too Slow!</div>
     <canvas id="circleCanvas"></canvas>
     <script>
         const canvas = document.getElementById("circleCanvas");
         const ctx = canvas.getContext("2d");
-        const scoreDiv = document.getElementById("score");
-        const instructionsDiv = document.getElementById("instructions");
+        const liveScoreDiv = document.getElementById("liveScore");
+        const finalScoreDiv = document.getElementById("finalScore");
+        const tooSlowDiv = document.getElementById("tooSlow");
         let drawing = false;
         let points = [];
         let highScore = 0;
-        
+        let drawingTimeout;
+        let lastPoint = null;
+        let lastTime = 0;
+
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         }
-        
         resizeCanvas();
         window.addEventListener("resize", resizeCanvas);
-        
+
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const minDistance = 50; // Minimum distance from the center
-        
+        const minDistance = 50;
+        const maxDeviation = 15;  // Allow more deviation from perfect circle
+        const maxSpeed = 15;  // Allow some speed variation (higher threshold)
+
         function drawCenterDot() {
             ctx.fillStyle = "white";
             ctx.beginPath();
             ctx.arc(centerX, centerY, 5, 0, Math.PI * 2);
             ctx.fill();
         }
-        
+
         canvas.addEventListener("mousedown", (e) => {
             const distFromCenter = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
             if (distFromCenter < minDistance) {
-                scoreDiv.innerText = "Too close to the dot!";
                 return;
             }
             drawing = true;
             points = [];
+            lastPoint = { x: e.clientX, y: e.clientY };
+            lastTime = Date.now();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             drawCenterDot();
+            finalScoreDiv.style.display = "none";
+            tooSlowDiv.style.display = "none"; // Hide "Too Slow" message when drawing starts
+
+            // Start the timeout for checking if the drawing takes too long
+            drawingTimeout = setTimeout(() => {
+                if (drawing) {
+                    tooSlowDiv.style.display = "block"; // Show "Too Slow" message if drawing for too long
+                    drawing = false;
+                }
+            }, 5000); // 5 seconds timeout
         });
 
         canvas.addEventListener("mousemove", (e) => {
             if (!drawing) return;
-            points.push({ x: e.clientX, y: e.clientY });
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            if (points.length > 1) {
-                ctx.beginPath();
-                ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
-                ctx.lineTo(e.clientX, e.clientY);
-                ctx.stroke();
+
+            let currentTime = Date.now();
+            let timeDiff = currentTime - lastTime;
+            let distance = Math.sqrt((e.clientX - lastPoint.x) ** 2 + (e.clientY - lastPoint.y) ** 2);
+
+            // Check if the movement speed is too fast (this prevents scribbling)
+            if (distance / timeDiff > maxSpeed) {
+                return;  // Too fast, ignore the point
             }
+
+            // Calculate the expected radius of the circle from the center
+            let radius = Math.sqrt((lastPoint.x - centerX) ** 2 + (lastPoint.y - centerY) ** 2);
+            let currentDist = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
+            
+            // Allow more leniency for slight deviations in circle shape
+            if (Math.abs(currentDist - radius) < maxDeviation) {
+                points.push({ x: e.clientX, y: e.clientY });
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2;
+                if (points.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(points[points.length - 2].x, points[points.length - 2].y);
+                    ctx.lineTo(e.clientX, e.clientY);
+                    ctx.stroke();
+                }
+                lastPoint = { x: e.clientX, y: e.clientY }; // Update the last point
+            }
+
+            lastTime = currentTime;  // Update the last time
+            updateLiveScore();
         });
 
         canvas.addEventListener("mouseup", () => {
             drawing = false;
+            clearTimeout(drawingTimeout); // Clear the "Too Slow" timeout
             evaluateCircle();
+            liveScoreDiv.innerText = "";
         });
 
-        function evaluateCircle() {
-            if (points.length < 10) {
-                scoreDiv.innerText = "Draw a full circle!";
-                return;
-            }
+        function updateLiveScore() {
+            if (points.length < 10) return;
+            let score = calculateScore().toFixed(2);
+            liveScoreDiv.innerText = `${score}%`;
+            liveScoreDiv.style.color = score > 90 ? "rgba(0, 255, 0, 0.7)" : score > 70 ? "rgba(255, 255, 0, 0.7)" : "rgba(255, 0, 0, 0.7)";
+        }
 
-            // Check if the shape is a scribble (too irregular)
-            let isScribble = false;
-            let angleChanges = [];
-            for (let i = 1; i < points.length - 1; i++) {
-                let dx1 = points[i].x - points[i - 1].x;
-                let dy1 = points[i].y - points[i - 1].y;
-                let dx2 = points[i + 1].x - points[i].x;
-                let dy2 = points[i + 1].y - points[i].y;
-                let angle = Math.atan2(dy2, dx2) - Math.atan2(dy1, dx1);
-                angleChanges.push(Math.abs(angle));
-            }
-            let avgAngleChange = angleChanges.reduce((sum, a) => sum + a, 0) / angleChanges.length;
-            if (avgAngleChange > 1.5) { // Threshold for scribble detection
-                isScribble = true;
-            }
-
-            // Check if the shape is a line (not a circle)
+        function calculateScore() {
+            if (points.length < 20) return 0;
             let minX = Math.min(...points.map(p => p.x));
             let maxX = Math.max(...points.map(p => p.x));
             let minY = Math.min(...points.map(p => p.y));
             let maxY = Math.max(...points.map(p => p.y));
             let width = maxX - minX;
             let height = maxY - minY;
-            let aspectRatio = width / height;
-            if (aspectRatio < 0.5 || aspectRatio > 2) { // Threshold for line detection
-                isScribble = true;
-            }
+            let avgRadius = (width + height) / 4;
+            let deviations = points.map(p => Math.abs(Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2) - avgRadius));
+            let avgDeviation = deviations.reduce((sum, d) => sum + d, 0) / deviations.length;
+            return Math.max(0, 100 - avgDeviation * 1.5);
+        }
 
-            if (isScribble) {
-                scoreDiv.innerText = "That's a scribble, not a circle!";
+        function evaluateCircle() {
+            let score = calculateScore();
+            if (score < 30 || points.length < 50) {
                 return;
             }
-
-            // Calculate circle properties
-            let avgRadius = (width + height) / 4;
-            let deviations = points.map(p => {
-                let dist = Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
-                return Math.abs(dist - avgRadius);
-            });
-            let avgDeviation = deviations.reduce((sum, d) => sum + d, 0) / deviations.length;
-            let stability = Math.max(0, 100 - avgDeviation * 1.5); // Made less strict
-            let score = Math.round(stability + 5); // Increased score to be more forgiving
-            
-            // Draw the ideal circle for comparison
             ctx.strokeStyle = "yellow";
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(centerX, centerY, avgRadius, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, (Math.max(...points.map(p => Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2))) + Math.min(...points.map(p => Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2)))) / 2, 0, Math.PI * 2);
             ctx.stroke();
-            
-            // Update score display
-            if (score > 90) {
-                scoreDiv.style.backgroundColor = "green";
-                scoreDiv.style.color = "white";
-            } else if (score > 70) {
-                scoreDiv.style.backgroundColor = "yellow";
-                scoreDiv.style.color = "black";
-            } else {
-                scoreDiv.style.backgroundColor = "red";
-                scoreDiv.style.color = "white";
-            }
-            
-            if (score > highScore) {
-                highScore = score;
-                scoreDiv.innerText = `Score: ${score}% - NEW HIGH SCORE!`;
-            } else {
-                scoreDiv.innerText = `Score: ${score}%`;
-            }
+            highScore = Math.max(highScore, score);
+            finalScoreDiv.innerText = `Final Score: ${score.toFixed(2)}%`;
+            finalScoreDiv.style.display = "block";
         }
 
         drawCenterDot();
