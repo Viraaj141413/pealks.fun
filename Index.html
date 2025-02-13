@@ -22,15 +22,15 @@
         }
         .live-score {
             position: absolute;
-            top: 50%;
+            top: 10%;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
             font-size: 32px;
             font-weight: bold;
             color: rgba(255, 255, 0, 0.7);
             text-shadow: 0 0 5px rgba(255, 255, 0, 0.7);
         }
-        .final-score {
+        .final-score, .too-slow {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -42,15 +42,27 @@
             display: none;
         }
         .too-slow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 48px;
-            font-weight: bold;
             color: rgba(255, 0, 0, 0.8);
             text-shadow: 0 0 10px rgba(255, 0, 0, 0.8);
-            display: none;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .live-score {
+                font-size: 24px;
+                top: 5%;
+            }
+            .final-score, .too-slow {
+                font-size: 36px;
+            }
+        }
+
+        /* Tablet/Desktop Adjustments */
+        @media (min-width: 769px) {
+            .live-score {
+                font-size: 32px;
+                top: 10%;
+            }
         }
     </style>
 </head>
@@ -59,6 +71,7 @@
     <div class="final-score" id="finalScore"></div>
     <div class="too-slow" id="tooSlow">Too Slow!</div>
     <canvas id="circleCanvas"></canvas>
+
     <script>
         const canvas = document.getElementById("circleCanvas");
         const ctx = canvas.getContext("2d");
@@ -72,6 +85,7 @@
         let lastPoint = null;
         let lastTime = 0;
 
+        // Resize canvas
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -92,11 +106,10 @@
             ctx.fill();
         }
 
-        canvas.addEventListener("mousedown", (e) => {
+        // Mouse and touch events
+        const startDrawing = (e) => {
             const distFromCenter = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
-            if (distFromCenter < minDistance) {
-                return;
-            }
+            if (distFromCenter < minDistance) return;
             drawing = true;
             points = [];
             lastPoint = { x: e.clientX, y: e.clientY };
@@ -113,9 +126,16 @@
                     drawing = false;
                 }
             }, 5000); // 5 seconds timeout
+        };
+
+        // Event listeners for mouse and touch events
+        canvas.addEventListener("mousedown", (e) => startDrawing(e));
+        canvas.addEventListener("touchstart", (e) => {
+            e.preventDefault();
+            startDrawing(e.touches[0]);
         });
 
-        canvas.addEventListener("mousemove", (e) => {
+        const continueDrawing = (e) => {
             if (!drawing) return;
 
             let currentTime = Date.now();
@@ -130,7 +150,7 @@
             // Calculate the expected radius of the circle from the center
             let radius = Math.sqrt((lastPoint.x - centerX) ** 2 + (lastPoint.y - centerY) ** 2);
             let currentDist = Math.sqrt((e.clientX - centerX) ** 2 + (e.clientY - centerY) ** 2);
-            
+
             // Allow more leniency for slight deviations in circle shape
             if (Math.abs(currentDist - radius) < maxDeviation) {
                 points.push({ x: e.clientX, y: e.clientY });
@@ -147,14 +167,24 @@
 
             lastTime = currentTime;  // Update the last time
             updateLiveScore();
+        };
+
+        canvas.addEventListener("mousemove", (e) => continueDrawing(e));
+        canvas.addEventListener("touchmove", (e) => {
+            e.preventDefault();
+            continueDrawing(e.touches[0]);
         });
 
-        canvas.addEventListener("mouseup", () => {
+        // End drawing
+        const stopDrawing = () => {
             drawing = false;
             clearTimeout(drawingTimeout); // Clear the "Too Slow" timeout
             evaluateCircle();
             liveScoreDiv.innerText = "";
-        });
+        };
+
+        canvas.addEventListener("mouseup", stopDrawing);
+        canvas.addEventListener("touchend", stopDrawing);
 
         function updateLiveScore() {
             if (points.length < 10) return;
