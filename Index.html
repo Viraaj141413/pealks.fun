@@ -1,7 +1,4 @@
-# Create an index.html file with the provided game code
-file_path = "/mnt/data/index.html"
-
-html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,6 +10,7 @@ html_content = """<!DOCTYPE html>
             overflow: hidden;
             background-color: black;
             color: white;
+            font-family: Arial, sans-serif;
         }
         canvas {
             display: block;
@@ -32,16 +30,28 @@ html_content = """<!DOCTYPE html>
             padding: 10px;
             border-radius: 5px;
             background-color: rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+        .instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="score" id="score">Draw a circle!</div>
+    <div class="instructions" id="instructions">Click and drag to draw a circle around the dot.</div>
     <canvas id="circleCanvas"></canvas>
     <script>
         const canvas = document.getElementById("circleCanvas");
         const ctx = canvas.getContext("2d");
         const scoreDiv = document.getElementById("score");
+        const instructionsDiv = document.getElementById("instructions");
         let drawing = false;
         let points = [];
         let highScore = 0;
@@ -96,30 +106,62 @@ html_content = """<!DOCTYPE html>
         });
 
         function evaluateCircle() {
-            if (points.length < 10) return;
+            if (points.length < 10) {
+                scoreDiv.innerText = "Draw a full circle!";
+                return;
+            }
+
+            // Check if the shape is a scribble (too irregular)
+            let isScribble = false;
+            let angleChanges = [];
+            for (let i = 1; i < points.length - 1; i++) {
+                let dx1 = points[i].x - points[i - 1].x;
+                let dy1 = points[i].y - points[i - 1].y;
+                let dx2 = points[i + 1].x - points[i].x;
+                let dy2 = points[i + 1].y - points[i].y;
+                let angle = Math.atan2(dy2, dx2) - Math.atan2(dy1, dx1);
+                angleChanges.push(Math.abs(angle));
+            }
+            let avgAngleChange = angleChanges.reduce((sum, a) => sum + a, 0) / angleChanges.length;
+            if (avgAngleChange > 1.5) { // Threshold for scribble detection
+                isScribble = true;
+            }
+
+            // Check if the shape is a line (not a circle)
             let minX = Math.min(...points.map(p => p.x));
             let maxX = Math.max(...points.map(p => p.x));
             let minY = Math.min(...points.map(p => p.y));
             let maxY = Math.max(...points.map(p => p.y));
             let width = maxX - minX;
             let height = maxY - minY;
+            let aspectRatio = width / height;
+            if (aspectRatio < 0.5 || aspectRatio > 2) { // Threshold for line detection
+                isScribble = true;
+            }
+
+            if (isScribble) {
+                scoreDiv.innerText = "That's a scribble, not a circle!";
+                return;
+            }
+
+            // Calculate circle properties
             let avgRadius = (width + height) / 4;
-            
             let deviations = points.map(p => {
                 let dist = Math.sqrt((p.x - centerX) ** 2 + (p.y - centerY) ** 2);
                 return Math.abs(dist - avgRadius);
             });
             let avgDeviation = deviations.reduce((sum, d) => sum + d, 0) / deviations.length;
-            
             let stability = Math.max(0, 100 - avgDeviation * 1.5); // Made less strict
             let score = Math.round(stability + 5); // Increased score to be more forgiving
             
+            // Draw the ideal circle for comparison
             ctx.strokeStyle = "yellow";
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(centerX, centerY, avgRadius, 0, Math.PI * 2);
             ctx.stroke();
             
+            // Update score display
             if (score > 90) {
                 scoreDiv.style.backgroundColor = "green";
                 scoreDiv.style.color = "white";
@@ -143,9 +185,3 @@ html_content = """<!DOCTYPE html>
     </script>
 </body>
 </html>
-"""
-
-with open(file_path, "w") as file:
-    file.write(html_content)
-
-file_path
